@@ -1,17 +1,17 @@
+/******************** Constants ********************/
 require("dotenv").config();
-const createError = require("http-errors");
-const express = require("express");
-const path = require("path");
 const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-const cors = require("cors");
+const express = require("express");
 const mongoose = require("mongoose");
-
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/cloudTaskr";
-console.log("Connecting DB to ", MONGODB_URI);
+const logger = require("morgan");
+const path = require("path");
+const cors = require("cors");
+const app = express();
+const URI = process.env.MONGODB_URI || "mongodb://localhost/fresh-tech";
+const PORT = process.env.PORT || 5000;
 
 mongoose
-  .connect(MONGODB_URI, {
+  .connect(URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
@@ -24,38 +24,38 @@ mongoose
   })
   .catch((err) => console.error("Error connecting to mongo", err));
 
-const app = express();
-
-app.use(
-  cors({
-    credentials: true,
-    origin: ["http://localhost:3000", "https://clientnetlify.netlify.app"],
-  })
-);
-
-app.use(logger("dev"));
-app.use(express.json());
+/******************** Middleware ********************/
+// app.use(
+//   cors({
+//     credentials: true,
+//     origin: ["http://localhost:3000", "https://clientnetlify.netlify.app"],
+//   })
+// );
+app.use(cors());
+app.use(express.static(path.join(__dirname, "../client/build")));
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(logger("dev"));
+
+/******************** Routes ********************/
 
 const taskRouter = require("./routes/task");
 app.use("/", taskRouter);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
+/******************** Error Handling ********************/
+app.use((req, res) => {
+  res.status(404).json({ msg: "Not Found" });
 });
 
-// error handler
-app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get("env") === "development" ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+app.use((err, req, res, next) => {
+  console.error("ERROR", req.method, req.path, err);
+  if (!res.headersSent) {
+    res.status(500).send({ msg: "Check the error on console" });
+  }
 });
+
+if (!module.parent)
+  app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
 
 module.exports = app;
