@@ -7,7 +7,7 @@ const logger = require("morgan");
 const path = require("path");
 const cors = require("cors");
 const app = express();
-const URI = process.env.MONGODB_URI || "mongodb://localhost/fresh-tech";
+const URI = process.env.MONGODB_URI || "mongodb://localhost/cloudtaskr";
 const PORT = process.env.PORT || 5000;
 
 mongoose

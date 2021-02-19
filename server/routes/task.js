@@ -6,7 +6,7 @@ router.get("/test", (req, res, next) => {
 });
 
 router.get("/tasks", async (req, res, next) => {
-  let dbRes = await Task.find();
+  let dbRes = await Task.find({});
   res.status(200).json({ tasks: dbRes });
 });
 
